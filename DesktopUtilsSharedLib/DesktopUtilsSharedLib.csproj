@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <Product>Desktop Utilities Shared Library</Product>
+    <Version>0.$([System.DateTime]::UtcNow.ToString("yyyy.MMdd.Hmm"))</Version>
+
+    <LangVersion>Latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

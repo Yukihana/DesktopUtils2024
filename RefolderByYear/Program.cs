@@ -10,6 +10,7 @@ internal class Program
     {
         string source = ConsoleHelper.GetInput("Enter source path: ");
         string target = ConsoleHelper.GetInput("Enter target path: ");
+        string suffix = ConsoleHelper.GetInput("Enter suffix: ");
 
         string[] files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
 
@@ -21,7 +22,7 @@ internal class Program
             var year = fi.LastWriteTime.Year;
             int index = 0;
 
-            string newdir = Path.Combine(target, $"{year}");
+            string newdir = Path.Combine(target, $"{year}{suffix}");
 
             while (true)
             {
@@ -40,7 +41,7 @@ internal class Program
                 }
 
                 index++;
-                newdir = Path.Combine(target, $"{year}_{index}");
+                newdir = Path.Combine(target, $"{year}_{index}{suffix}");
             }
         }
         Console.WriteLine();

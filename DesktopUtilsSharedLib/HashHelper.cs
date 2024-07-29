@@ -10,27 +10,51 @@ namespace DesktopUtilsSharedLib;
 
 public static partial class HashHelper
 {
+    public static string ProcessHash(MemoryStream ms)
+    {
+        long originalPosition = ms.Position;
+
+        ms.Position = 0;
+        using HashAlgorithm hasher = Environment.OSVersion.Version.Major >= 11
+                ? SHA3_512.Create()
+                : SHA256.Create();
+        byte[] hash = hasher.ComputeHash(ms);
+
+        ms.Position = originalPosition;
+        return Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
+
     public async static Task<string> ProcessHash(string path, CancellationToken ctoken = default)
     {
         ctoken.ThrowIfCancellationRequested();
 
-        using MemoryStream ms = new();
+        MemoryStream ms = new();
         using (FileStream fs = new(path, FileMode.Open, FileAccess.Read))
         {
             await fs.CopyToAsync(ms, ctoken);
-            fs.Close();
         }
-        ms.Position = 0;
+        string hash = await Task.Run(() => ProcessHash(ms));
 
-        using HashAlgorithm hasher = Environment.OSVersion.Version.Major >= 11
-                ? SHA3_512.Create()
-                : SHA256.Create();
+        Console.WriteLine("- " + hash + " : " + path);
+        return hash;
+    }
 
-        byte[] hash = await hasher.ComputeHashAsync(ms, ctoken);
-        string id = Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    public async static Task<string> ProcessHash(string path, SemaphoreSlim readSemaphore, CancellationToken ctoken = default)
+    {
+        ctoken.ThrowIfCancellationRequested();
 
-        Console.WriteLine("- " + id + " : " + path);
-        return id;
+        MemoryStream ms = new();
+        try
+        {
+            await readSemaphore.WaitAsync(ctoken);
+            await using FileStream fs = new(path, FileMode.Open, FileAccess.Read);
+            await fs.CopyToAsync(ms, ctoken);
+        }
+        finally { readSemaphore.Release(); }
+
+        string hash = await Task.Run(() => ProcessHash(ms));
+        Console.WriteLine("- " + hash + " : " + path);
+        return hash;
     }
 
     public static async Task<ConcurrentDictionary<string, string>> HashFiles(HashSet<string> files, CancellationToken ctoken = default)

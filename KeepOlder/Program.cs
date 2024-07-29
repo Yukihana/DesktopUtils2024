@@ -77,6 +77,7 @@ internal class Program
             try
             {
                 File.Delete(kvp.Key);
+                // FileSystem.DeleteFile(kvp.Key, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             }
             catch (Exception ex)
             {

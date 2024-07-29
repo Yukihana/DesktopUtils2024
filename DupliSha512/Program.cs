@@ -1,5 +1,6 @@
 ﻿using DesktopUtilsSharedLib;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,42 +13,55 @@ internal class Program
 {
     async static Task Main(string[] args)
     {
-        string path = ConsoleHelper.GetInput("Enter path for analysis: ");
-        Console.WriteLine("Processing...");
+        // Take input
+
+        List<string> paths = ConsoleHelper.GetInputs("Enter paths for analysis (empty line to end): ");
+
         Console.WriteLine();
+        Console.WriteLine("Processing...");
 
-        string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-        Dictionary<string, List<string>> hashList = [];
-        SemaphoreSlim _lock = new(1);
+        List<string> files = paths.Select(x => Directory.GetFiles(x, "*", SearchOption.AllDirectories)).SelectMany(x => x).ToList();
 
-        await Parallel.ForEachAsync(files, async (x, ctoken) =>
+        // Hash and group
+
+        Console.WriteLine();
+        ConcurrentDictionary<string, string> hashes = [];
+        using (SemaphoreSlim se = new(1))
         {
-            string hash = await HashHelper.ProcessHash(x);
-            try
+            await Parallel.ForEachAsync(files, CancellationToken.None, async (file, ct) =>
             {
-                await _lock.WaitAsync(ctoken);
+                hashes.TryAdd(file, await HashHelper.ProcessHash(file, se, ct));
+            });
+        }
+        Dictionary<string, List<string>> hashGroups = hashes.GroupBy(x => x.Value).Where(x => x.Count() > 1).ToDictionary(x => x.Key, x => x.Select(x => x.Key).ToList());
 
-                if (!hashList.ContainsKey(hash))
-                    hashList[hash] = [];
-                hashList[hash].Add(x);
-            }
-            finally
-            { _lock.Release(); }
-        });
+        // Display grouping
+
+        Console.WriteLine();
+        Console.WriteLine("Grouping...");
+        Console.WriteLine();
 
         int uniqueHashes = 0;
         int duplicateFiles = 0;
-        foreach (var kvp in hashList.Where(x => x.Value.Count > 1))
+        foreach (var kvp in hashGroups)
         {
-            Console.WriteLine($"Name: {kvp.Key}");
+            ConsoleHelper.PrintListSection($"Hash: {kvp.Key}", kvp.Value);
             uniqueHashes++;
             duplicateFiles += kvp.Value.Count;
-
-            foreach (var filepath in kvp.Value)
-                Console.WriteLine("- " + filepath);
-
-            Console.WriteLine();
         }
+
+        // Location grouping
+
+        Console.WriteLine();
+        Console.WriteLine("Most relevant directories...");
+        Console.WriteLine();
+
+        Dictionary<string, int> dirGroups = hashGroups.SelectMany(x => x.Value).GroupBy(x => Path.GetDirectoryName(x) ?? string.Empty).ToDictionary(x => x.Key, x => x.Count());
+        foreach (var kvp in dirGroups.OrderByDescending(x => x.Value))
+            Console.WriteLine($"{kvp.Value} - {kvp.Key}");
+        Console.WriteLine();
+
+        // End
 
         Console.WriteLine();
         Console.WriteLine("...completed.");

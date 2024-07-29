@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
 
-    <Product>Rename files by Hash</Product>
+    <Product>Rename file by hash</Product>
     <Version>0.$([System.DateTime]::UtcNow.ToString("yyyy.MMdd.Hmm"))</Version>
 
     <LangVersion>Latest</LangVersion>

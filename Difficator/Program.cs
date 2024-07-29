@@ -14,8 +14,8 @@ internal class Program
         string trg1 = src1.TrimEnd(Path.PathSeparator) + "_diff";
         string trg2 = src2.TrimEnd(Path.PathSeparator) + "_diff";
 
-        string[] files1 = [.. Directory.GetFiles(src1, "*.*", SearchOption.TopDirectoryOnly).Select(x => Path.GetFileName(x))];
-        string[] files2 = [.. Directory.GetFiles(src2, "*.*", SearchOption.TopDirectoryOnly).Select(x => Path.GetFileName(x))];
+        string[] files1 = [.. Directory.GetFiles(src1).Select(Path.GetFileName)];
+        string[] files2 = [.. Directory.GetFiles(src2).Select(Path.GetFileName)];
 
         if (!files1.Intersect(files2).Any())
         {

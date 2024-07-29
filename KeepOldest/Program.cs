@@ -22,10 +22,15 @@ internal class Program
                 break;
             directories.Add(input);
         }
+        SearchOption subdirs = ConsoleHelper.GetInput("Include files in subdirectories? (y): ") == "y" ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-        // Acquire the files and hash them
-        HashSet<string> filePaths = directories.SelectMany(Directory.GetFiles).ToHashSet();
+        // Acquire the files
+        HashSet<string> filePaths = directories.SelectMany(x => Directory.GetFiles(x, "*", subdirs)).ToHashSet();
+        Console.WriteLine($"Found {filePaths.Count} files in the provided directories.");
+
+        // Hash group them
         ConcurrentDictionary<string, string> hashList = await HashHelper.HashFiles(filePaths);
+        Console.WriteLine($"Preliminary hashing found {hashList.Count} unique files. i.e. duplicates: {filePaths.Count - hashList.Count}");
 
         // Group all files, ingore uniques, and then verify by content comparison
         Dictionary<string, IEnumerable<string>> hashGroups = hashList.GroupBy(g => g.Value).ToDictionary(group => group.Key, group => group.Select(kvp => kvp.Key).ToList() as IEnumerable<string>);
@@ -40,28 +45,34 @@ internal class Program
         Console.WriteLine("Comparing file metadata...");
         foreach (var kvp in hashGroups)
         {
-            // Compare oldest with demo
             Console.WriteLine();
             Console.WriteLine($"Hash: {kvp.Key}");
-            var oldest = FileMetadataComparison.GetOldest(kvp.Value);
-            foreach (string path in kvp.Value)
-            {
-                string prefix = oldest.Contains(path) ? "K" : "R";
-                Console.WriteLine($"{prefix}: {path}");
-            }
 
-            // Conclude section
+            // Get oldest (if not by modified, then by created)
+            var oldest = FileMetadataComparison.GetOldestByModified(kvp.Value);
+            if (oldest.Count() > 1)
+                oldest = FileMetadataComparison.GetOldestByCreation(kvp.Value);
+
             if (oldest.Count() > 1)
             {
-                Console.WriteLine("...Skipping");
+                Console.WriteLine("...Skipping. Too many identical files with identical metadata.");
                 continue; // Skip files with the same metadata
+            }
+
+            string oldestOne = oldest.First();
+
+            // Display relevant files
+            foreach (string path in kvp.Value)
+            {
+                string prefix = path == oldestOne ? "K" : "R";
+                Console.WriteLine($"{prefix}: {path}");
             }
 
             // Otherwise add remaining files to remove list:
             Console.WriteLine("...adding newer files to removal list.");
             foreach (string path in kvp.Value)
             {
-                if (!oldest.Contains(path))
+                if (path != oldestOne)
                     removeList.Add(path);
             }
         }

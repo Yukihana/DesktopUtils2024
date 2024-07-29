@@ -7,10 +7,33 @@ namespace DesktopUtilsSharedLib;
 
 public static class ConsoleHelper
 {
+    // Inputs
+
     public static string GetInput(string message)
     {
         Console.Write(message);
         return Console.ReadLine() ?? string.Empty;
+    }
+
+    // Printing
+
+    public static List<string> GetInputs(string message)
+    {
+        if (Console.CursorLeft != 0)
+            Console.WriteLine();
+        Console.WriteLine(message);
+
+        List<string> inputs = [];
+        while (true)
+        {
+            string? input = Console.ReadLine();
+            if (!string.IsNullOrEmpty(input))
+                inputs.Add(input);
+            else
+                break;
+        }
+
+        return inputs;
     }
 
     public static void PrintListSection(string section, string[] entries)

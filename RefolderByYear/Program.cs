@@ -1,4 +1,6 @@
 ﻿using DesktopUtilsSharedLib;
+using System;
+using System.IO;
 
 namespace RefolderByYear;
 
@@ -6,13 +8,42 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        string path = ConsoleHelper.GetInput("Enter path: ");
+        string source = ConsoleHelper.GetInput("Enter source path: ");
+        string target = ConsoleHelper.GetInput("Enter target path: ");
 
-        if (Directory.GetDirectories(path).Length != 0)
+        string[] files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
+
+        foreach (var file in files)
         {
-            Console.WriteLine("Make sure there are no subdirectories. Aborting...");
-        }
+            string filename = Path.GetFileName(file);
+            FileInfo fi = new(file);
 
-        string[] files = Directory.GetFiles(path);
+            var year = fi.LastWriteTime.Year;
+            int index = 0;
+
+            string newdir = Path.Combine(target, $"{year}");
+
+            while (true)
+            {
+                string newpath = Path.Combine(newdir, filename);
+
+                try
+                {
+                    Directory.CreateDirectory(newdir);
+                    File.Move(file, newpath);
+                    Console.WriteLine($"Success: {file} > {newpath}");
+                    break;
+                }
+                catch
+                {
+                    Console.WriteLine($"Failed: {file} > {newpath}");
+                }
+
+                index++;
+                newdir = Path.Combine(target, $"{year}_{index}");
+            }
+        }
+        Console.WriteLine();
+        Console.WriteLine("...completed");
     }
 }

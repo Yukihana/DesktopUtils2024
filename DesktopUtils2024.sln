@@ -27,23 +27,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Difficator", "Difficator\Di
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conflictor", "Conflictor\Conflictor.csproj", "{F4CC29A3-B1B7-4585-8F41-C3CEA89F419B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DED", "DED\DED.csproj", "{B1F5B596-213F-49D2-988B-E2D432665C8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DED", "DED\DED.csproj", "{B1F5B596-213F-49D2-988B-E2D432665C8C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPD", "MPD\MPD.csproj", "{60677D7C-15A5-4036-8CBE-FA37FF69D042}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSR", "SDSR\SDSR.csproj", "{EAFA6386-7FAA-4C6A-B710-FD1963463634}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDSR", "SDSR\SDSR.csproj", "{EAFA6386-7FAA-4C6A-B710-FD1963463634}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurgeEmptyDirectories", "PurgeEmptyDirectories\PurgeEmptyDirectories.csproj", "{C2402573-92A5-4A41-8DE2-267E995783D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PurgeEmptyDirectories", "PurgeEmptyDirectories\PurgeEmptyDirectories.csproj", "{C2402573-92A5-4A41-8DE2-267E995783D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefolderByYear", "RefolderByYear\RefolderByYear.csproj", "{7E4B7607-0DB8-48FA-946F-693DDD780BF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefolderByYear", "RefolderByYear\RefolderByYear.csproj", "{7E4B7607-0DB8-48FA-946F-693DDD780BF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeepOlder", "KeepOlder\KeepOlder.csproj", "{C7BA654E-CCB6-459E-BF72-47AC9BA255A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeepOlder", "KeepOlder\KeepOlder.csproj", "{C7BA654E-CCB6-459E-BF72-47AC9BA255A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatifyDcim", "DatifyDcim\DatifyDcim.csproj", "{E0409F95-189F-4641-BA60-E9DA66319F57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatifyDcim", "DatifyDcim\DatifyDcim.csproj", "{E0409F95-189F-4641-BA60-E9DA66319F57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemovePrefix", "RemovePrefix\RemovePrefix.csproj", "{68B7DEE4-CBF7-4D31-8511-02FECABF6536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemovePrefix", "RemovePrefix\RemovePrefix.csproj", "{68B7DEE4-CBF7-4D31-8511-02FECABF6536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeepOldest", "KeepOldest\KeepOldest.csproj", "{BB78C98D-D074-4B62-9CCF-B233340C93A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeepOldest", "KeepOldest\KeepOldest.csproj", "{BB78C98D-D074-4B62-9CCF-B233340C93A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashRenameFile", "HashRenameFile\HashRenameFile.csproj", "{9C37F4E2-746A-4550-A16C-9298984BD7FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undifficate", "Undifficate\Undifficate.csproj", "{80BF407A-6D8A-4AD0-A262-7E9E9EF89968}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +139,14 @@ Global
 		{BB78C98D-D074-4B62-9CCF-B233340C93A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB78C98D-D074-4B62-9CCF-B233340C93A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB78C98D-D074-4B62-9CCF-B233340C93A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C37F4E2-746A-4550-A16C-9298984BD7FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C37F4E2-746A-4550-A16C-9298984BD7FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C37F4E2-746A-4550-A16C-9298984BD7FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C37F4E2-746A-4550-A16C-9298984BD7FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80BF407A-6D8A-4AD0-A262-7E9E9EF89968}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80BF407A-6D8A-4AD0-A262-7E9E9EF89968}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80BF407A-6D8A-4AD0-A262-7E9E9EF89968}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80BF407A-6D8A-4AD0-A262-7E9E9EF89968}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

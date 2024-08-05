@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using static System.Collections.Specialized.BitVector32;
 
@@ -13,6 +14,20 @@ public static class ConsoleHelper
     {
         Console.Write(message);
         return Console.ReadLine() ?? string.Empty;
+    }
+
+    public static string GetExistingFolder(string message)
+    {
+        Console.Write(message);
+        string directory = Console.ReadLine() ?? string.Empty;
+        if (!Directory.Exists(directory))
+        {
+            if (File.Exists(directory))
+                throw new InvalidDataException($"The provided path is a file, not a directory: {directory}");
+            else
+                throw new InvalidDataException($"The provided directory does not exist: {directory}");
+        }
+        return directory;
     }
 
     // Printing

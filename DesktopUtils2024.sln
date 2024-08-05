@@ -55,6 +55,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenameByModified", "RenameB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopySystemMetadata", "CopySystemMetadata\CopySystemMetadata.csproj", "{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenameBySha2D256", "RenameBySha2D256\RenameBySha2D256.csproj", "{B0005E55-2792-444D-8DB5-4C41A1667E56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RenameByMd5;
+namespace RenameBySha2D256;
 
 internal class Program
 {
@@ -19,7 +19,7 @@ internal class Program
 
         string[] files = Directory.GetFiles(path);
 
-        ConcurrentDictionary<string, string> hashlist = await HashHelperMd5.HashFiles(files, CancellationToken.None);
+        ConcurrentDictionary<string, string> hashlist = await HashHelperSha2D256.HashFiles(files, CancellationToken.None);
         Dictionary<string, string> renameList = [];
         foreach (var kvp in hashlist)
             renameList[kvp.Key] = Path.Combine(path, $"{prefix}{kvp.Value}{suffix}{Path.GetExtension(kvp.Key)}");

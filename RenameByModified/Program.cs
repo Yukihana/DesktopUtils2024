@@ -29,7 +29,7 @@ internal class Program
             string extension = Path.GetExtension(file);
             DateTime lastWriteTime = new FileInfo(file).LastWriteTime;
 
-            string datetime = lastWriteTime.ToString("yyyyMMdd_hhMMss");
+            string datetime = lastWriteTime.ToString("yyyyMMdd_HHmmss");
             string millsec = suffixmilliseconds == "y" ? $"_{lastWriteTime:fff}" : string.Empty;
 
             string oldName = Path.GetFileName(file);

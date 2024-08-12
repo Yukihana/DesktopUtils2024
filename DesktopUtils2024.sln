@@ -53,9 +53,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenameByMd5", "RenameByMd5\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenameByModified", "RenameByModified\RenameByModified.csproj", "{A2F6762B-0FB8-49A8-9DEE-10F18889CB07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopySystemMetadata", "CopySystemMetadata\CopySystemMetadata.csproj", "{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopySystemMetadata", "CopySystemMetadata\CopySystemMetadata.csproj", "{970E164B-41F1-4C53-96D0-AF71FEBBDDF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenameBySha2D256", "RenameBySha2D256\RenameBySha2D256.csproj", "{B0005E55-2792-444D-8DB5-4C41A1667E56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenameBySha2D256", "RenameBySha2D256\RenameBySha2D256.csproj", "{B0005E55-2792-444D-8DB5-4C41A1667E56}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "efix", "efix\efix.csproj", "{5C37087F-9FFD-4855-902B-C2E2413AEE83}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupliSha256", "DupliSha256\DupliSha256.csproj", "{BA97B22B-D9E2-479E-9712-F3D34393D4E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppendMd5", "AppendMd5\AppendMd5.csproj", "{91D47E87-D97D-48A9-8DD7-968F363AF2B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Folderize", "Folderize\Folderize.csproj", "{6DC4D8A7-BB77-4A6E-925E-33B62D0F2999}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,6 +179,22 @@ Global
 		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0005E55-2792-444D-8DB5-4C41A1667E56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C37087F-9FFD-4855-902B-C2E2413AEE83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C37087F-9FFD-4855-902B-C2E2413AEE83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C37087F-9FFD-4855-902B-C2E2413AEE83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C37087F-9FFD-4855-902B-C2E2413AEE83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA97B22B-D9E2-479E-9712-F3D34393D4E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA97B22B-D9E2-479E-9712-F3D34393D4E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA97B22B-D9E2-479E-9712-F3D34393D4E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA97B22B-D9E2-479E-9712-F3D34393D4E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91D47E87-D97D-48A9-8DD7-968F363AF2B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91D47E87-D97D-48A9-8DD7-968F363AF2B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91D47E87-D97D-48A9-8DD7-968F363AF2B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91D47E87-D97D-48A9-8DD7-968F363AF2B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DC4D8A7-BB77-4A6E-925E-33B62D0F2999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DC4D8A7-BB77-4A6E-925E-33B62D0F2999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DC4D8A7-BB77-4A6E-925E-33B62D0F2999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DC4D8A7-BB77-4A6E-925E-33B62D0F2999}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

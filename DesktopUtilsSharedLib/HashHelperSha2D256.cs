@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,30 +12,64 @@ namespace DesktopUtilsSharedLib;
 
 public static partial class HashHelperSha2D256
 {
-    public static string ProcessHash(MemoryStream ms, CancellationToken ctoken = default)
+    // Actual hashing internal (SHA2 256)
+
+    private static string ProcessHash(Stream stream, CancellationToken ctoken = default)
     {
         ctoken.ThrowIfCancellationRequested();
 
-        long originalPosition = ms.Position;
+        long originalPosition = stream.Position;
 
-        ms.Position = 0;
+        stream.Position = 0;
         using HashAlgorithm hasher = SHA256.Create();
-        byte[] hash = hasher.ComputeHash(ms);
+        byte[] hash = hasher.ComputeHash(stream);
 
-        ms.Position = originalPosition;
+        stream.Position = originalPosition;
         return Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    public async static Task<string> ProcessHash(string path, CancellationToken ctoken = default)
+    private async static Task<string> ProcessHashAsync(Stream stream, CancellationToken ctoken = default)
     {
         ctoken.ThrowIfCancellationRequested();
 
-        MemoryStream ms = new();
-        using (FileStream fs = new(path, FileMode.Open, FileAccess.Read))
+        long originalPosition = stream.Position;
+
+        stream.Position = 0;
+        using HashAlgorithm hasher = SHA256.Create();
+        byte[] hash = await hasher.ComputeHashAsync(stream, ctoken);
+
+        stream.Position = originalPosition;
+        return Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
+
+    // API: Single file
+
+    public static async Task<string> HashFile(string path, CancellationToken ctoken = default)
+    {
+        ctoken.ThrowIfCancellationRequested();
+
+        string hash;
+
+        await using (FileStream fs = new(path, FileMode.Open, FileAccess.Read))
         {
-            await fs.CopyToAsync(ms, ctoken);
+            long length = fs.Length;
+            fs.Position = 0;    // remove this if not required
+
+            if (length < int.MaxValue)
+            {
+                MemoryStream ms = new();
+                await fs.CopyToAsync(ms, ctoken);
+                ms.Position = 0;
+                hash = await Task.Run(() => ProcessHash(ms, ctoken));
+            }
+            else
+            {
+                hash = await ProcessHashAsync(fs, ctoken);
+            }
         }
-        string hash = await Task.Run(() => ProcessHash(ms));
+
+        if (string.IsNullOrEmpty(hash))
+            throw new Exception($"Error trying to hashing {path}");
 
         Console.WriteLine("- " + hash + " : " + path);
         return hash;
@@ -45,18 +80,31 @@ public static partial class HashHelperSha2D256
         ctoken.ThrowIfCancellationRequested();
 
         MemoryStream ms = new();
+        string hash = string.Empty;
+        long length = 0;
         try
         {
             await readLock.WaitAsync(ctoken);
             await using FileStream fs = new(path, FileMode.Open, FileAccess.Read);
-            await fs.CopyToAsync(ms, ctoken);
+            length = fs.Length;
+            if (length >= int.MaxValue)
+                hash = await ProcessHashAsync(fs, ctoken);
+            else
+                await fs.CopyToAsync(ms, ctoken);
         }
         finally { readLock.Release(); }
 
-        string hash = await Task.Run(() => ProcessHash(ms));
+        if (length < int.MaxValue)
+            hash = await Task.Run(() => ProcessHash(ms, ctoken));
+
+        if (string.IsNullOrEmpty(hash))
+            throw new Exception($"Error trying to hashing {path}");
+
         Console.WriteLine("- " + hash + " : " + path);
         return hash;
     }
+
+    // API: Multi file
 
     public static async Task<ConcurrentDictionary<string, string>> HashFiles(IEnumerable<string> files, CancellationToken ctoken = default)
     {

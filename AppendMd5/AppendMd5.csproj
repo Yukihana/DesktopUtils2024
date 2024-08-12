@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <Product>Append MD5 hash</Product>
+    <Version>0.$([System.DateTime]::UtcNow.ToString("yyyy.MMdd.Hmm"))</Version>
+
+    <LangVersion>Latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DesktopUtilsSharedLib\DesktopUtilsSharedLib.csproj" />
+  </ItemGroup>
+
+</Project>

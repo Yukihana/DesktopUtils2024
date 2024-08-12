@@ -10,7 +10,7 @@ internal class Program
     async static Task Main(string[] args)
     {
         string file = ConsoleHelper.GetInput("Enter file path: ");
-        string newname = await HashHelper.ProcessHash(file) + Path.GetExtension(file);
+        string newname = await HashHelperSha2D256.HashFile(file) + Path.GetExtension(file);
         string dir = Path.GetDirectoryName(file) ?? throw new Exception();
         string newpath = Path.Combine(dir, newname);
         File.Move(file, newpath);

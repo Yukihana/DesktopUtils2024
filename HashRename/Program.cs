@@ -15,9 +15,9 @@ internal class Program
 
         string option = ConsoleHelper.GetInput("Append original name(y): ");
 
-        await Parallel.ForEachAsync(files, CancellationToken.None, async (file, ctoken) =>
+        await Parallel.ForEachAsync(files, CancellationToken.None, async (file, ct) =>
         {
-            string hash = await HashHelper.ProcessHash(file);
+            string hash = await HashHelperSha2D256.HashFile(file, ct);
             string newname = option == "y"
                 ? hash + "_" + Path.GetFileName(file)
                 : hash + Path.GetExtension(file);

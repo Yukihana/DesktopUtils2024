@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -58,7 +57,9 @@ public static partial class FileComparison
         }
     }
 
-    private static bool CompareBuffers(IEnumerable<Memory<byte>> buffersToCompare)
+    // Compare Binary (Unrestricted File Count)
+
+    public static bool CompareBuffers(IEnumerable<Memory<byte>> buffersToCompare)
     {
         // Snapshot and validate minimum operational quantity
         List<Memory<byte>> bufferList = buffersToCompare.ToList();
@@ -82,95 +83,97 @@ public static partial class FileComparison
         return true;
     }
 
-    public async static Task<bool> CompareBinary(IEnumerable<string> files, int bufferSize = 0, CancellationToken ctoken = default)
+    public async static Task<bool> CompareStreams(IEnumerable<Stream> streamsToCompare, SemaphoreSlim readLock, int bufferSize = 0, CancellationToken ctoken = default)
     {
         ctoken.ThrowIfCancellationRequested();
 
-        string[] paths = files.ToArray();
-        int itemCount = files.Count();
-        if (itemCount < 2)
-            throw new InvalidOperationException("Need two or more to compare.");
+        var streams = streamsToCompare.ToArray();
+        if (streams.Length < 2)
+            throw new InvalidOperationException("Need two or more items for comparison");
 
-        FileStream[] streams = new FileStream[itemCount];
+        // Validate all files are the same size.
+        long length = streams[0].Length;
+        if (streams.Any(x => x.Length != length))
+            return false;
+
+        // Prepare
+        long position = 0;
+        bufferSize = bufferSize < 1 ? DEFAULT_BUFFER_SIZE : bufferSize;
+        ConcurrentBag<byte[]> bufferPool = [];
+        ConcurrentBag<bool> results = [];
+        List<Task> tasks = [];
+
+        while (position < length)
+        {
+            if (results.Any(x => !x))
+                return false;   // Early bail if there's any failed compare tasks.
+
+            Dictionary<byte[], int> buffersToCompare = [];
+
+            // Read data into buffers from pool, or create new
+            try
+            {
+                await readLock.WaitAsync(ctoken);
+
+                foreach (var fs in streams)
+                {
+                    fs.Position = position;
+                    if (!bufferPool.TryTake(out byte[]? buffer))
+                        buffer = new byte[bufferSize];
+
+                    buffersToCompare[buffer] = await fs.ReadAsync(buffer, ctoken);
+                }
+            }
+            finally { readLock.Release(); }
+
+            // Verify buffer sizes match
+            int readSize = buffersToCompare.First().Value;
+            if (buffersToCompare.Values.Any(x => x != readSize))
+                throw new Exception("Buffer read sizes don't match. Internal error.");
+            position += readSize;
+
+            // Queue task to compare buffers
+            tasks.Add(Task.Run(() =>
+            {
+                Memory<byte>[] memories = buffersToCompare.Select(x => x.Key.AsMemory(0, x.Value)).ToArray();
+                bool result = CompareBuffers(memories);
+
+                // Add result to bag and return buffers to the pool.
+                results.Add(result);
+                foreach (var kvp in buffersToCompare)
+                    bufferPool.Add(kvp.Key);
+            }, ctoken));
+        }
+
+        await Task.WhenAll(tasks);
+
+        return results.All(x => x == true);
+    }
+
+    public static async Task<bool> CompareFiles(IEnumerable<string> paths, SemaphoreSlim readLock, int bufferSize, CancellationToken ctoken = default)
+    {
+        List<FileStream> streams = [];
+
         try
         {
-            // Lock on to the files
-            for (int i = 0; i < itemCount; i++)
-                streams[i] = new FileStream(paths[i], FileMode.Open, FileAccess.Read);
+            foreach (string path in paths)
+                streams.Add(new(path, FileMode.Open, FileAccess.Read));
 
-            // Validate all files are the same size.
-            long length = streams[0].Length;
-            if (streams.Any(x => x.Length != length))
-                return false;
-
-            // Prepare
-            long position = 0;
-            bufferSize = bufferSize < 1 ? DEFAULT_BUFFER_SIZE : bufferSize;
-            SemaphoreSlim opsLock = new(1);
-            ConcurrentBag<byte[]> bufferPool = [];
-            ConcurrentBag<bool> results = [];
-            List<Task> tasks = [];
-
-            while (position < length)
-            {
-                if (results.Any(x => !x))
-                    return false;
-
-                Dictionary<byte[], int> buffers = [];
-
-                // Read data
-                try
-                {
-                    await opsLock.WaitAsync(ctoken);
-
-                    foreach (var fs in streams)
-                    {
-                        fs.Position = position;
-                        if (!bufferPool.TryTake(out byte[]? buffer))
-                            buffer = new byte[bufferSize];
-
-                        buffers[buffer] = await fs.ReadAsync(buffer, ctoken);
-                    }
-                }
-                finally { opsLock.Release(); }
-
-                // Compare buffers
-                int readSize = buffers.First().Value;
-                if (buffers.Values.Any(x => x != readSize))
-                    throw new Exception("Buffer read sizes don't match. Internal error.");
-                position += readSize;
-
-                tasks.Add(Task.Run(() =>
-                {
-                    Memory<byte>[] memories = buffers.Select(x => x.Key.AsMemory(0, x.Value)).ToArray();
-                    bool result = CompareBuffers(memories);
-
-                    // Add result to bag and
-                    results.Add(result);
-                    foreach (var kvp in buffers)
-                        bufferPool.Add(kvp.Key);
-                }, ctoken));
-            }
-
-            await Task.WhenAll(tasks);
-
-            return results.All(x => x == true);
+            return await CompareStreams(streams, readLock, bufferSize, ctoken);
         }
         finally
         {
-            await Parallel.ForEachAsync(streams, CancellationToken.None, async (stream, ct) => await stream.DisposeAsync());
+            await Parallel.ForEachAsync(streams, ctoken, async (x, ct) => await x.DisposeAsync());
         }
     }
 
-    public async static Task<ConcurrentDictionary<string, bool>> CompareGroupsBinary(Dictionary<string, IEnumerable<string>> groups, int bufferSize = 0, CancellationToken ctoken = default)
+    public async static Task<ConcurrentDictionary<string, bool>> CompareGroupsBinary(Dictionary<string, HashSet<string>> groups, int bufferSize = 0, CancellationToken ctoken = default)
     {
         ctoken.ThrowIfCancellationRequested();
 
+        using SemaphoreSlim readLock = new(1);
         ConcurrentDictionary<string, bool> result = [];
-        await Parallel.ForEachAsync(groups, ctoken, async (group, ct) =>
-        {
-            result[group.Key] = await CompareBinary(group.Value, bufferSize, ct);
-        });
+        await Parallel.ForEachAsync(groups, ctoken, async (group, ct) => result[group.Key] = await CompareFiles(group.Value, readLock, bufferSize, ct));
         return result;
     }
 }

@@ -7,6 +7,8 @@ namespace DesktopUtilsSharedLib;
 
 public static partial class FileMetadataComparison
 {
+    // By Path
+
     public static IEnumerable<string> GetOldestByModified(IEnumerable<string> paths)
     {
         Dictionary<string, DateTime> modified = paths.ToDictionary(x => x, x => new FileInfo(x).LastWriteTime);
@@ -39,5 +41,39 @@ public static partial class FileMetadataComparison
         }
 
         return created.Where(x => x.Value == oldest).Select(x => x.Key);
+    }
+
+    // By FileInfo
+
+    public static IEnumerable<FileInfo> GetOldestByModified(IEnumerable<FileInfo> fileInfos)
+    {
+        if (fileInfos.Count() < 2)
+            throw new InvalidOperationException("Cannot compare less than 2 files.");
+
+        var first = fileInfos.First();
+        DateTime oldest = first.LastWriteTime;
+        foreach (var dt in fileInfos.Select(x => x.LastWriteTime))
+        {
+            if (dt < oldest)
+                oldest = dt;
+        }
+
+        return fileInfos.Where(x => x.LastWriteTime == oldest);
+    }
+
+    public static IEnumerable<FileInfo> GetOldestByCreation(IEnumerable<FileInfo> fileInfos)
+    {
+        if (fileInfos.Count() < 2)
+            throw new InvalidOperationException("Cannot compare less than 2 files.");
+
+        var first = fileInfos.First();
+        DateTime oldest = first.CreationTime;
+        foreach (var dt in fileInfos.Select(x => x.CreationTime))
+        {
+            if (dt < oldest)
+                oldest = dt;
+        }
+
+        return fileInfos.Where(x => x.CreationTime == oldest);
     }
 }

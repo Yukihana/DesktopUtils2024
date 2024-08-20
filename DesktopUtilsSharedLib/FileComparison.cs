@@ -16,36 +16,28 @@ public static partial class FileComparison
     {
         try
         {
-            using MemoryStream m1 = new();
-            using MemoryStream m2 = new();
+            using FileStream f1 = new(file1, FileMode.Open, FileAccess.Read);
+            using FileStream f2 = new(file2, FileMode.Open, FileAccess.Read);
 
-            using (FileStream f1 = new(file1, FileMode.Open, FileAccess.Read))
-            {
-                await f1.CopyToAsync(m1, ctoken);
-            }
-
-            using (FileStream f2 = new(file2, FileMode.Open, FileAccess.Read))
-            {
-                await f2.CopyToAsync(m2, ctoken);
-            }
-
-            if (m1.Length != m2.Length)
+            if (f1.Length != f2.Length)
                 return false;
 
-            m1.Position = 0;
-            m2.Position = 0;
-
-            const int bufferSize = 1024; // Adjust buffer size as needed
+            long pos = 0;
+            const int bufferSize = 1024 * 1024 * 16; // Adjust buffer size as needed
             byte[] buffer1 = new byte[bufferSize];
             byte[] buffer2 = new byte[bufferSize];
 
-            while (m1.Position < m1.Length)
+            while (pos < f1.Length)
             {
-                int bytesRead1 = m1.Read(buffer1, 0, bufferSize);
-                int bytesRead2 = m2.Read(buffer2, 0, bufferSize);
+                f1.Position = pos;
+                f2.Position = pos;
+                int bytesRead1 = await f1.ReadAsync(buffer1, ctoken);
+                int bytesRead2 = await f2.ReadAsync(buffer2, ctoken);
 
                 if (bytesRead1 != bytesRead2 || !buffer1.AsSpan(0, bytesRead1).SequenceEqual(buffer2.AsSpan(0, bytesRead2)))
                     return false;
+
+                pos += bytesRead1;
             }
 
             return true;

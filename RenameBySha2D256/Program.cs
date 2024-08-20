@@ -24,9 +24,20 @@ internal class Program
         foreach (var kvp in hashlist)
             renameList[kvp.Key] = Path.Combine(path, $"{prefix}{kvp.Value}{suffix}{Path.GetExtension(kvp.Key)}");
 
+        // Remove files that had the same name before.
+        HashSet<string> norename = [];
+        foreach (var kvp in renameList)
+        {
+            if (kvp.Key == kvp.Value)
+                norename.Add(kvp.Key);
+        }
+        foreach (var key in norename)
+            renameList.Remove(key);
+
         List<string> filenames = [];
         filenames.AddRange(renameList.Keys);
         filenames.AddRange(renameList.Values);
+        filenames.AddRange(norename);
 
         if (filenames.Count != filenames.Distinct().Count())
         {

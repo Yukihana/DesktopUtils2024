@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
 
-    <Product>Delete duplicate from 2nd folder</Product>
+    <Product>Search by File Size</Product>
     <Version>0.$([System.DateTime]::UtcNow.ToString("yyyy.MMdd.Hmm"))</Version>
 
     <LangVersion>Latest</LangVersion>

@@ -1,76 +1,93 @@
-﻿using System;
+﻿using DesktopUtilsSharedLib;
+using FSE = DesktopUtilsSharedLib.Extensions.FileSystemExtensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+namespace Deduplicator2F;
 
 internal class Program
 {
-    static void Main(string[] args)
+    async static Task Main(string[] args)
     {
-        Console.WriteLine("Enter the first folder path:");
-        string folderPath1 = Console.ReadLine();
+        string sourceDir = ConsoleHelper.GetExistingFolder("Enter source folder: ");
+        string targetDir = ConsoleHelper.GetExistingFolder("Enter target folder: ");
 
-        Console.WriteLine("Enter the second folder path:");
-        string folderPath2 = Console.ReadLine();
+        // Acquire files and sizes
+        var sourceNames = Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories);
+        var targetNames = Directory.GetFiles(targetDir, "*", SearchOption.AllDirectories);
+        Dictionary<string, long> sourceBySize = sourceNames.ToDictionary(x => x, x => new FileInfo(x).Length);
+        Dictionary<string, long> targetBySize = targetNames.ToDictionary(x => x, x => new FileInfo(x).Length);
 
-        if (!Directory.Exists(folderPath1) || !Directory.Exists(folderPath2))
+        // Create the compare list. target as key ensures multiple can be deleted by same source.
+        Dictionary<string, List<string>> compareList = targetBySize.ToDictionary(
+            keySelector: t => t.Key,
+            elementSelector: t => sourceBySize.Where(s => s.Value == t.Value).Select(s => s.Key).ToList());
+
+        // When comparing use a hash cache to improve speed
+        Dictionary<string, string> hashCache = [];
+        Dictionary<string, string> deletionList = [];
+
+        // Do comparison
+        foreach (var compareTask in compareList)
         {
-            Console.WriteLine("One or both of the directories do not exist.");
+            var targetHash = await HashCacheFile(compareTask.Key);
+            foreach (var sourcefile in compareTask.Value)
+            {
+                // compare by hash first
+                var sourceHash = await HashCacheFile(sourcefile);
+                if (targetHash != sourceHash)
+                    continue;
+
+                // verify by actual content
+                if (await FileComparison.CompareBinary(compareTask.Key, sourcefile))
+                {
+                    deletionList[compareTask.Key] = sourcefile;
+                    break;
+                }
+            }
+        }
+
+        // Confirm and finish
+
+        Console.WriteLine("List of files to delete: ");
+        var bkp = Console.ForegroundColor;
+        foreach (var deletionTask in deletionList)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(deletionTask.Key);
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.WriteLine(deletionTask.Value);
+            Console.WriteLine();
+        }
+        Console.ForegroundColor = bkp;
+
+        if (ConsoleHelper.GetInput("Confirm deletion of files in Red? (y):") != "y")
+        {
+            Console.WriteLine("Aborting due to cancellation...");
             return;
         }
 
-        var files1 = Directory.GetFiles(folderPath1);
-        var files2 = Directory.GetFiles(folderPath2);
-
-        var fileNames1 = files1.Select(Path.GetFileName);
-        var fileNames2 = files2.Select(Path.GetFileName);
-
-        var commonFileNames = fileNames1.Intersect(fileNames2);
-
-        foreach (var fileName in commonFileNames)
+        foreach (var deletionTask in deletionList)
         {
-            string filePath1 = Path.Combine(folderPath1, fileName);
-            string filePath2 = Path.Combine(folderPath2, fileName);
-
-            if (FilesAreEqual(filePath1, filePath2))
-            {
-                Console.WriteLine($"Files {fileName} are equal. Deleting {filePath2}.");
-                File.Delete(filePath2);
-            }
+            FSE.RecycleFile(deletionTask.Key);
+            // File.Delete(deletionTask.Key); // for perma deletion
         }
 
-        Console.WriteLine("Operation completed.");
+        ConsoleHelper.Goodbye();
     }
 
-    static bool FilesAreEqual(string filePath1, string filePath2)
+    private static readonly Dictionary<string, string> _hashCache = [];
+
+    static async Task<string> HashCacheFile(string filePath) // turn this into a class
     {
-        const int bufferSize = 1024 * 1024; // 1MB buffer size
-
-        using (var fs1 = new FileStream(filePath1, FileMode.Open, FileAccess.Read))
-        using (var fs2 = new FileStream(filePath2, FileMode.Open, FileAccess.Read))
+        if (!_hashCache.TryGetValue(filePath, out var hash))
         {
-            if (fs1.Length != fs2.Length)
-                return false;
-
-            byte[] buffer1 = new byte[bufferSize];
-            byte[] buffer2 = new byte[bufferSize];
-
-            while (true)
-            {
-                int bytesRead1 = fs1.Read(buffer1, 0, bufferSize);
-                int bytesRead2 = fs2.Read(buffer2, 0, bufferSize);
-
-                if (bytesRead1 != bytesRead2)
-                    return false;
-
-                if (bytesRead1 == 0) // End of file reached
-                    break;
-
-                if (!buffer1.Take(bytesRead1).SequenceEqual(buffer2.Take(bytesRead1)))
-                    return false;
-            }
+            hash = await HashHelperSha2D256.HashFile(filePath);
+            _hashCache[filePath] = hash;
         }
-
-        return true;
+        return hash;
     }
 }

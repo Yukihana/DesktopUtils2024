@@ -1,8 +1,9 @@
-﻿<Application x:Class="MPD.App"
+﻿<Application x:Class="RemoveCommonFiles.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MPD"
-             StartupUri="Windows/MainWindow.xaml">
+             xmlns:local="clr-namespace:RemoveCommonFiles"
+             StartupUri="MainWindow.xaml">
     <Application.Resources>
+         
     </Application.Resources>
 </Application>

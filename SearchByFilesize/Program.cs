@@ -1,5 +1,5 @@
 ﻿using DesktopUtilsSharedLib;
-using DesktopUtilsSharedLib.Extensions;
+using DesktopUtilsSharedLib.ConsoleHelpers;
 using System;
 using System.Collections.Generic;
 using System.IO;

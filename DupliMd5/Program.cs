@@ -1,4 +1,5 @@
 ﻿using DesktopUtilsSharedLib;
+using DesktopUtilsSharedLib.ConsoleHelpers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DupliSha512;
+namespace DupliMd5;
 
 internal class Program
 {
@@ -15,7 +16,7 @@ internal class Program
     {
         // Take input
 
-        List<string> paths = ConsoleHelper.GetInputs("Enter paths for analysis (empty line to end): ");
+        List<string> paths = ConsoleInput.GetStrings("Enter paths for analysis (empty line to end): ");
         HashSet<string> files = paths.SelectMany(x => Directory.GetFiles(x, "*", SearchOption.AllDirectories)).ToHashSet();
         Console.WriteLine();
 
@@ -23,7 +24,7 @@ internal class Program
 
         Console.WriteLine("Processing...");
         Console.WriteLine();
-        ConcurrentDictionary<string, string> hashes = await HashHelperSha2D256.HashFiles(files, CancellationToken.None);
+        ConcurrentDictionary<string, string> hashes = await HashHelperMd5.HashFiles(files, CancellationToken.None);
         Console.WriteLine();
 
         // Display grouping
@@ -39,7 +40,7 @@ internal class Program
         int duplicateFiles = 0;
         foreach (var kvp in hashGroups)
         {
-            ConsoleHelper.PrintListSection($"Hash: {kvp.Key}", kvp.Value);
+            ConsoleOutput.PrintListSection($"Hash: {kvp.Key}", kvp.Value);
             uniqueHashes++;
             duplicateFiles += kvp.Value.Count;
         }

@@ -5,13 +5,15 @@ namespace DesktopUtilsSharedLib;
 
 public static partial class FileSystemHelper
 {
-    public static string[] SafeGetFiles(string path)
+    public static string[] SafeGetFiles(
+        string path)
     {
         try { return Directory.GetFiles(path); }
         catch { return []; }
     }
 
-    public static List<string> SafeGetDirectoriesRecursive(string path)
+    public static List<string> SafeGetDirectoriesRecursive(
+        string path)
     {
         List<string> directories = [];
         try

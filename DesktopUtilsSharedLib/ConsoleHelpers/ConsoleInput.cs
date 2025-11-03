@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
-namespace DesktopUtilsSharedLib.Extensions;
+namespace DesktopUtilsSharedLib.ConsoleHelpers;
 
 public static partial class ConsoleInput
 {
+    private static readonly string[] YES_VALUES = ["y", "yes", "1"];
+    private static readonly string[] NO_VALUES = ["n", "no", "0"];
     // Path
 
     public static string GetExistingFile(string message)
@@ -34,6 +37,21 @@ public static partial class ConsoleInput
                 throw new InvalidDataException($"The provided directory does not exist: {directory}");
         }
         return directory;
+    }
+
+    public static string[] GetFoldersUntilEmpty(string message)
+    {
+        WriteMessage(message, appendNewLine: true);
+        List<string> folders = [];
+
+        while (true)
+        {
+            if (!TryTakeFolderOrEmpty(out string path))
+                break;
+            folders.Add(path);
+        }
+
+        return [.. folders];
     }
 
     // String
@@ -74,7 +92,10 @@ public static partial class ConsoleInput
         {
             try
             {
-                string input = Console.ReadLine() ?? throw new Exception();
+                var input = Console.ReadLine();
+                input = input?.Replace("_", "");
+                if (string.IsNullOrEmpty(input))
+                    return 0;
                 long result = long.Parse(input);
                 return result;
             }
@@ -132,6 +153,67 @@ public static partial class ConsoleInput
                 return result;
             }
             catch (Exception ex) { Console.WriteLine(ex.Message); }
+        }
+    }
+
+    public static bool GetYesNo(
+        string message,
+        bool defaultValue = false)
+    {
+        WriteMessage(message);
+        while (true)
+        {
+            try
+            {
+                string input = Console.ReadLine() ?? throw new Exception();
+
+                if (string.IsNullOrEmpty(input))
+                    return defaultValue;
+
+                if (NO_VALUES.Contains(input, StringComparer.OrdinalIgnoreCase))
+                    return false;
+
+                if (YES_VALUES.Contains(input, StringComparer.OrdinalIgnoreCase))
+                    return true;
+
+                throw new Exception("Please enter 'y' or 'n'.");
+            }
+            catch (Exception ex) { Console.WriteLine(ex.Message); }
+        }
+    }
+
+    private static void WriteMessage(
+        string message,
+        bool appendNewLine = false)
+    {
+        if (Console.GetCursorPosition().Left != 0)
+            Console.WriteLine();
+
+        if (appendNewLine)
+            Console.WriteLine(message);
+        else
+            Console.Write(message);
+    }
+
+    private static bool TryTakeFolderOrEmpty(out string path)
+    {
+        while (true)
+        {
+            try
+            {
+                path = Console.ReadLine() ?? throw new Exception();
+                if (string.IsNullOrEmpty(path))
+                    return false;
+
+                if (!Directory.Exists(path))
+                    throw new InvalidDataException($"The provided directory does not exist: {path}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

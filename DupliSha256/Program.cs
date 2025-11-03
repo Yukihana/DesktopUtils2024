@@ -1,7 +1,9 @@
 ﻿using DesktopUtilsSharedLib;
+using DesktopUtilsSharedLib.ConsoleHelpers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,48 +17,51 @@ internal class Program
     {
         // Take input
 
-        List<string> paths = ConsoleHelper.GetInputs("Enter paths for analysis (empty line to end): ");
+        List<string> paths = ConsoleInput.GetStrings("Enter paths for analysis (empty line to end): ");
         HashSet<string> files = paths.SelectMany(x => Directory.GetFiles(x, "*", SearchOption.AllDirectories)).ToHashSet();
-        Console.WriteLine($"Found {files.Count} files.");
+        int fileCount = files.Count;
         Console.WriteLine();
 
-        // Filter by size
+        // Filter : Size
 
-        string minSizeString = ConsoleHelper.GetInput("Enter minimum size limit for files to be assessed: ");
-        if (!long.TryParse(minSizeString.Replace("_", ""), out var minSize))
-            minSize = 0;
-        string maxSizeString = ConsoleHelper.GetInput("Enter maximum size limit for files to be assessed: ");
-        if (!long.TryParse(maxSizeString.Replace("_", ""), out var maxSize))
-            maxSize = 0;
+        long minSize = ConsoleInput.GetLong("Enter minimum size limit for files to be assessed: ");
+        long maxSize = ConsoleInput.GetLong("Enter maximum size limit for files to be assessed: ");
 
         if (maxSize > 0 || minSize > 0)
             files = files.FilesWithin(minSize, maxSize);
-        Console.WriteLine($"Filtered down to {files.Count} files.");
+        int filteredCount = files.Count;
         Console.WriteLine();
 
-        // Hash and group
+        // Hash
 
         Console.WriteLine("Processing...");
         Console.WriteLine();
+        var stopwatch = Stopwatch.StartNew();
         ConcurrentDictionary<string, string> hashes = await HashHelperSha2D256.HashFiles(files, CancellationToken.None);
+        stopwatch.Stop();
+        TimeSpan hashTime = stopwatch.Elapsed;
         Console.WriteLine();
 
-        // Display grouping
+        // Group
 
         Console.WriteLine("Grouping...");
         Console.WriteLine();
 
-        Dictionary<string, HashSet<string>> hashGroups = hashes
-            .GroupBy(x => x.Value)
+        var hashGroups = hashes.GroupBy(x => x.Value).ToList();
+        var totalUnique = hashGroups.Count;
+        Dictionary<string, HashSet<string>> duplicateGroups = hashGroups
             .Where(x => x.Count() > 1)
             .ToDictionary(x => x.Key, x => x.Select(y => y.Key).ToHashSet());
+
+        // Display groups
+
         int uniqueHashes = 0;
-        int duplicateFiles = 0;
-        foreach (var kvp in hashGroups)
+        int duplicateCount = 0;
+        foreach (var kvp in duplicateGroups)
         {
-            ConsoleHelper.PrintListSection($"Hash: {kvp.Key}", kvp.Value);
+            ConsoleOutput.PrintListSection($"Hash: {kvp.Key}", kvp.Value);
             uniqueHashes++;
-            duplicateFiles += kvp.Value.Count;
+            duplicateCount += kvp.Value.Count;
         }
         Console.WriteLine();
 
@@ -65,7 +70,7 @@ internal class Program
         Console.WriteLine("Most relevant directories...");
         Console.WriteLine();
 
-        Dictionary<string, int> dirGroups = hashGroups.SelectMany(x => x.Value).GroupBy(x => Path.GetDirectoryName(x) ?? string.Empty).ToDictionary(x => x.Key, x => x.Count());
+        Dictionary<string, int> dirGroups = duplicateGroups.SelectMany(x => x.Value).GroupBy(x => Path.GetDirectoryName(x) ?? string.Empty).ToDictionary(x => x.Key, x => x.Count());
         foreach (var kvp in dirGroups.OrderByDescending(x => x.Value))
             Console.WriteLine($"{kvp.Value} - {kvp.Key}");
         Console.WriteLine();
@@ -73,6 +78,13 @@ internal class Program
         // End
 
         Console.WriteLine("...completed.");
-        Console.WriteLine($"${uniqueHashes} unique SHA2-256 hashes had a total of {duplicateFiles} duplicates.");
+        Console.WriteLine();
+        Console.WriteLine($"Method used: SHA2-256");
+        Console.WriteLine($"Time taken: {hashTime}");
+        Console.WriteLine($"Total files: {fileCount} (Size filtered to: {filteredCount})");
+        Console.WriteLine();
+        Console.WriteLine($"Total unique (in filtered files): {totalUnique}");
+        Console.WriteLine($"Total duplicates: {duplicateCount}");
+        Console.WriteLine($"Uniques in duplicates: {uniqueHashes}");
     }
 }

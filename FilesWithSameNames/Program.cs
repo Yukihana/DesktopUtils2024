@@ -1,4 +1,4 @@
-﻿using DesktopUtilsSharedLib;
+﻿using DesktopUtilsSharedLib.ConsoleHelpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        string path = ConsoleHelper.GetInput("Enter path: ");
+        string path = ConsoleInput.GetExistingFolder("Enter path: ");
 
         Console.WriteLine("Processing...");
         Console.WriteLine();
